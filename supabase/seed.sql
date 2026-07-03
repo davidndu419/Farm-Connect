@@ -1,0 +1,2 @@
+-- Production data is created through Supabase Auth and the Farm Connect API.
+-- Automated tests create isolated users and records inside transactions.

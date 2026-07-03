@@ -1,0 +1,30 @@
+{
+  "name": "@farm-connect/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --watch src/server.js",
+    "start": "node --env-file=.env src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@farm-connect/contracts": "1.0.0",
+    "@supabase/supabase-js": "^2.50.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.1",
+    "pino-http": "^10.4.0",
+    "sharp": "^0.34.2",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.5",
+    "supertest": "^7.1.1",
+    "vitest": "^3.2.3"
+  }
+}

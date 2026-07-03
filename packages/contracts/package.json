@@ -1,0 +1,23 @@
+{
+  "name": "@farm-connect/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./catalog": "./src/catalog.js",
+    "./roles": "./src/roles.js",
+    "./validation": "./src/validation.js"
+  },
+  "scripts": {
+    "build": "node -e \"import('./src/index.js')\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.3"
+  }
+}
