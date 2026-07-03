@@ -9,7 +9,7 @@ export function refreshCookieOptions(env) {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/api/v1/auth",
+    path: "/api",
     maxAge: 30 * 24 * 60 * 60 * 1000
   };
 }

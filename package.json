@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "concurrently -n web,api -c green,cyan \"npm run dev -w @farm-connect/frontend\" \"npm run dev -w @farm-connect/backend\"",
     "build": "npm run build -w @farm-connect/contracts && npm run build -w @farm-connect/frontend",
+    "vercel-build": "npm run build -w @farm-connect/contracts && npm run build -w @farm-connect/frontend",
     "lint": "eslint .",
     "test": "npm run test -w @farm-connect/contracts && npm run test -w @farm-connect/backend && npm run test -w @farm-connect/frontend",
     "test:watch": "concurrently -n contracts,api,web \"npm run test:watch -w @farm-connect/contracts\" \"npm run test:watch -w @farm-connect/backend\" \"npm run test:watch -w @farm-connect/frontend\"",

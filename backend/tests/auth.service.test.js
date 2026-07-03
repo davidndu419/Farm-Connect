@@ -105,7 +105,7 @@ describe("authentication service", () => {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
-      path: "/api/v1/auth"
+      path: "/api"
     });
   });
 });
