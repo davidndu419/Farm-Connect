@@ -35,7 +35,10 @@ export async function apiRequest(path, options = {}) {
 
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    if (response.status === 401 && unauthorizedHandler) {
+    if (
+      (response.status === 401 || payload?.error?.code === "ACCOUNT_SUSPENDED") &&
+      unauthorizedHandler
+    ) {
       unauthorizedHandler();
     }
 

@@ -38,3 +38,9 @@ export const messageLimiter = createLimiter(
   60,
   "Messages are being sent too quickly. Please slow down."
 );
+
+export const reportLimiter = createLimiter(
+  60 * 60 * 1000,
+  10,
+  "Too many reports have been submitted. Please try again later."
+);

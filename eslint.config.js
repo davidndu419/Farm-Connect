@@ -49,6 +49,7 @@ export default [
   },
   {
     files: [
+      "api/**/*.js",
       "backend/**/*.js",
       "packages/**/*.js",
       "*.config.js"

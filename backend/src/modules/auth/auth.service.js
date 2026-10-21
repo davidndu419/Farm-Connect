@@ -26,6 +26,16 @@ async function sessionPayload(env, session) {
   const userSupabase = createUserSupabaseClient(env, session.access_token);
   const profile = await getOwnProfile(userSupabase, session.user);
 
+  if (profile.accountStatus === "suspended") {
+    throw new ApiError(
+      403,
+      "ACCOUNT_SUSPENDED",
+      profile.restrictionReason
+        ? `This account is suspended. ${profile.restrictionReason}`
+        : "This account is suspended. Contact support if you believe this is an error."
+    );
+  }
+
   return {
     user: {
       id: session.user.id,

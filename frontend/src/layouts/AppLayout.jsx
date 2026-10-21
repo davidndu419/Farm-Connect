@@ -13,6 +13,7 @@ export function AppLayout() {
             <span>Farm Connect</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-bold" aria-label="Account">
+            {profile?.isAdmin ? <NavLink to="/admin" className="rounded-lg bg-ink px-3 py-1.5 text-white hover:bg-leaf">Admin portal</NavLink> : null}
             <NavLink to="/marketplace" className={({ isActive }) => isActive ? "text-leaf underline underline-offset-4" : "text-ink/75 hover:text-leaf transition-colors"}>Marketplace</NavLink>
             {profile?.role === "farmer" ? <NavLink to="/my-products" className={({ isActive }) => isActive ? "text-leaf underline underline-offset-4" : "text-ink/75 hover:text-leaf transition-colors"}>My products</NavLink> : null}
             <NavLink to="/messages" className={({ isActive }) => isActive ? "text-leaf underline underline-offset-4" : "text-ink/75 hover:text-leaf transition-colors"}>Messages</NavLink>
@@ -24,6 +25,12 @@ export function AppLayout() {
         </div>
       </header>
       <div className="mx-auto w-full max-w-6xl flex-1 px-5 pt-3 pb-6">
+        {profile?.accountStatus === "frozen" ? (
+          <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
+            <strong>Your account is in read-only mode.</strong>{" "}
+            {profile.restrictionReason || "Contact an administrator for more information."}
+          </div>
+        ) : null}
         <Outlet />
       </div>
 

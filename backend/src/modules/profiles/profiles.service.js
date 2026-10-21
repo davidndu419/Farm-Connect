@@ -11,23 +11,32 @@ function withAvatarUrl(supabase, profile) {
 }
 
 export async function getOwnProfile(supabase, user) {
-  const [publicResult, privateResult] = await Promise.all([
+  const [publicResult, privateResult, accessResult] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("profile_private")
       .select("phone")
       .eq("user_id", user.id)
-      .single()
+      .single(),
+    supabase.rpc("get_my_account_access")
   ]);
 
-  if (publicResult.error || privateResult.error) {
+  if (publicResult.error || privateResult.error || accessResult.error) {
     throw ApiError.notFound("The account profile was not found.");
   }
 
   return {
     ...withAvatarUrl(supabase, publicResult.data),
     phone: privateResult.data.phone,
-    email: user.email
+    email: user.email,
+    isAdmin: Boolean(accessResult.data?.isAdmin),
+    accountStatus:
+      accessResult.data?.accountStatus ?? publicResult.data.account_status,
+    restrictionReason:
+      accessResult.data?.restrictionReason ??
+      publicResult.data.restriction_reason,
+    restrictedAt:
+      accessResult.data?.restrictedAt ?? publicResult.data.restricted_at
   };
 }
 

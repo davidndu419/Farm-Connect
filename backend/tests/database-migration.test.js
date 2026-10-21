@@ -17,6 +17,7 @@ const bootstrapSql = `
 
   create table auth.users (
     id uuid primary key,
+    email text,
     raw_user_meta_data jsonb not null default '{}'::jsonb
   );
 
@@ -118,12 +119,21 @@ describe("Supabase migrations", () => {
     for (const user of users) {
       await database.query(
         `
-          insert into auth.users (id, raw_user_meta_data)
-          values ($1, $2::jsonb)
+          insert into auth.users (id, email, raw_user_meta_data)
+          values ($1, $2, $3::jsonb)
         `,
-        [user.id, JSON.stringify(user.metadata)]
+        [
+          user.id,
+          `${user.metadata.full_name.toLowerCase().replaceAll(" ", ".")}@example.com`,
+          JSON.stringify(user.metadata)
+        ]
       );
     }
+
+    await database.query(
+      `insert into public.admin_memberships (user_id) values ($1)`,
+      [FARMER_ID]
+    );
   }, 30_000);
 
   afterAll(async () => {
@@ -139,12 +149,15 @@ describe("Supabase migrations", () => {
     `);
 
     expect(result.rows.map(({ table_name: tableName }) => tableName)).toEqual([
+      "admin_actions",
+      "admin_memberships",
       "conversations",
       "messages",
       "product_images",
       "products",
       "profile_private",
-      "profiles"
+      "profiles",
+      "user_reports"
     ]);
   });
 
@@ -158,12 +171,15 @@ describe("Supabase migrations", () => {
         'public.products'::regclass,
         'public.product_images'::regclass,
         'public.conversations'::regclass,
-        'public.messages'::regclass
+        'public.messages'::regclass,
+        'public.admin_actions'::regclass,
+        'public.admin_memberships'::regclass,
+        'public.user_reports'::regclass
       )
       and relrowsecurity
     `);
 
-    expect(result.rows[0].enabled_count).toBe(6);
+    expect(result.rows[0].enabled_count).toBe(9);
   });
 
   it("creates public marketplace and private chat image buckets with strict limits", async () => {
@@ -578,6 +594,132 @@ describe("Supabase migrations", () => {
       select id from public.products
     `);
     expect(deletedPublicProducts.rows).toEqual([]);
+    await resetRole(database);
+  }, 30_000);
+
+  it("enforces reporting, account restrictions, and administrator promotion", async () => {
+    await setAuthenticatedUser(database, BUYER_ID);
+    const report = await database.query(`
+      select public.submit_user_report(
+        '${STRANGER_ID}',
+        'spam',
+        'This user repeatedly sent suspicious unsolicited messages.',
+        null,
+        null
+      ) as report
+    `);
+    expect(report.rows[0].report).toMatchObject({ status: "open" });
+    await resetRole(database);
+
+    await setAuthenticatedUser(database, FARMER_ID);
+    const dashboard = await database.query(`
+      select public.admin_dashboard() as dashboard
+    `);
+    expect(Number(dashboard.rows[0].dashboard.metrics.totalUsers)).toBe(3);
+    expect(Number(dashboard.rows[0].dashboard.metrics.openReports)).toBe(1);
+
+    const adminCollections = await database.query(`
+      select
+        public.admin_search_users(null, 'all', 'all', 'all', 25, 0) as users,
+        public.admin_search_products(null, 'all', 'all', 25, 0) as products,
+        public.admin_search_conversations(null, 25, 0) as conversations,
+        public.admin_search_reports('all', 25, 0) as reports,
+        public.admin_audit_log(25, 0) as audit
+    `);
+    expect(Number(adminCollections.rows[0].users.total)).toBe(3);
+    expect(Number(adminCollections.rows[0].products.total)).toBe(1);
+    expect(Number(adminCollections.rows[0].conversations.total)).toBe(1);
+    expect(Number(adminCollections.rows[0].reports.total)).toBe(1);
+    expect(Number(adminCollections.rows[0].audit.total)).toBe(0);
+
+    const conversationMessages = await database.query(`
+      select public.admin_conversation_messages(
+        (select id from public.conversations limit 1),
+        100,
+        0
+      ) as conversation
+    `);
+    expect(Number(conversationMessages.rows[0].conversation.total)).toBe(3);
+
+    const draftProduct = await database.query(`
+      insert into public.products (
+        farmer_id,
+        title,
+        description,
+        category,
+        price,
+        unit,
+        available_quantity,
+        state,
+        city
+      ) values (
+        '${FARMER_ID}',
+        'Admin review product',
+        'A draft product created to verify moderation controls.',
+        'other',
+        2500,
+        'piece',
+        3,
+        'Enugu',
+        'Nsukka'
+      ) returning id
+    `);
+    const moderated = await database.query(`
+      select public.admin_moderate_product(
+        '${draftProduct.rows[0].id}',
+        true,
+        'Listing requires a policy review.'
+      ) as product
+    `);
+    expect(moderated.rows[0].product).toMatchObject({ isHidden: true });
+
+    const reviewedReport = await database.query(`
+      select public.admin_update_report(
+        '${report.rows[0].report.id}',
+        'reviewing',
+        'Assigned for evidence review.'
+      ) as report
+    `);
+    expect(reviewedReport.rows[0].report).toMatchObject({ status: "reviewing" });
+
+    const frozen = await database.query(`
+      select public.admin_set_account_status(
+        '${STRANGER_ID}',
+        'frozen',
+        'Reviewing unusual marketplace behaviour.'
+      ) as account
+    `);
+    expect(frozen.rows[0].account).toMatchObject({ accountStatus: "frozen" });
+
+    const promotion = await database.query(`
+      select public.admin_set_membership(
+        '${BUYER_ID}',
+        true,
+        'Trusted operations team member.'
+      ) as membership
+    `);
+    expect(promotion.rows[0].membership).toMatchObject({ isAdmin: true });
+    await resetRole(database);
+
+    await setAuthenticatedUser(database, STRANGER_ID);
+    await expect(
+      database.query(`
+        select public.update_my_profile(
+          'Blocked Update',
+          '+2348033333333',
+          '12 Restricted Road',
+          'Abia',
+          'Umuahia'
+        )
+      `)
+    ).rejects.toThrow(/read-only access/);
+    await resetRole(database);
+
+    await setAuthenticatedUser(database, BUYER_ID);
+    const promotedDashboard = await database.query(`
+      select public.admin_dashboard() as dashboard
+    `);
+    expect(Number(promotedDashboard.rows[0].dashboard.metrics.admins)).toBe(2);
     await resetRole(database);
   }, 30_000);
 });

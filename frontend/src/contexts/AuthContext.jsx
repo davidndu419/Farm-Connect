@@ -65,7 +65,10 @@ export function AuthProvider({ children }) {
 
   const updateProfile = useCallback(async (values) => {
     const { data } = await profilesApi.updateProfile(values);
-    setSession((current) => ({ ...current, profile: data }));
+    setSession((current) => ({
+      ...current,
+      profile: { ...current.profile, ...data }
+    }));
     return data;
   }, []);
 

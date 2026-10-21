@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { getBasicProfile } from "../api/profilesApi.js";
 import { PublicProfileCard } from "../components/profiles/PublicProfileCard.jsx";
+import { ReportUserButton } from "../components/moderation/ReportUserButton.jsx";
 
 export function UserProfilePage() {
   const { userId } = useParams();
@@ -24,6 +25,11 @@ export function UserProfilePage() {
         ← Back to messages
       </Link>
       <PublicProfileCard profile={query.data.data} />
+      <ReportUserButton
+        className="mt-4 flex justify-end"
+        userId={query.data.data.id}
+        userName={query.data.data.full_name}
+      />
     </main>
   );
 }

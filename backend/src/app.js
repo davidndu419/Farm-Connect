@@ -13,6 +13,10 @@ import { createProfilesRouter } from "./modules/profiles/profiles.routes.js";
 import { createProductsRouter } from "./modules/products/products.routes.js";
 import { createConversationsRouter } from "./modules/conversations/conversations.routes.js";
 import { createMessagesRouter } from "./modules/messages/messages.routes.js";
+import {
+  createAdminRouter,
+  createReportsRouter
+} from "./modules/moderation/moderation.routes.js";
 
 export function createApp({ env, publicSupabase, logger = true } = {}) {
   if (!env) {
@@ -81,6 +85,14 @@ export function createApp({ env, publicSupabase, logger = true } = {}) {
   app.use(
     "/api/v1/conversations",
     createConversationsRouter({ env, publicSupabase: supabase })
+  );
+  app.use(
+    "/api/v1/reports",
+    createReportsRouter({ env, publicSupabase: supabase })
+  );
+  app.use(
+    "/api/v1/admin",
+    createAdminRouter({ env, publicSupabase: supabase })
   );
 
   app.use(notFound);

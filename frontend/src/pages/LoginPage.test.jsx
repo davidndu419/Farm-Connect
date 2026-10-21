@@ -65,4 +65,31 @@ describe("LoginPage", () => {
     expect(await screen.findByText("Marketplace destination")).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/marketplace");
   });
+
+  it("opens the admin portal for an administrator", async () => {
+    const user = userEvent.setup();
+    const login = vi.fn().mockResolvedValue({
+      profile: { isAdmin: true }
+    });
+    const router = createMemoryRouter(
+      [
+        { path: "/login", element: <LoginPage /> },
+        { path: "/admin", element: <p>Admin destination</p> }
+      ],
+      { initialEntries: ["/login"] }
+    );
+
+    render(
+      <AuthContext.Provider value={{ login }}>
+        <RouterProvider router={router} />
+      </AuthContext.Provider>
+    );
+
+    await user.type(screen.getByLabelText(/email address/i), "admin@example.com");
+    await user.type(screen.getByLabelText(/^password/i), "strong-pass");
+    await user.click(screen.getByRole("button", { name: /^log in$/i }));
+
+    expect(await screen.findByText("Admin destination")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/admin");
+  });
 });

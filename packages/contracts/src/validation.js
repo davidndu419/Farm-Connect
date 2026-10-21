@@ -4,12 +4,21 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCT_UNITS
 } from "./catalog.js";
-import { PRODUCT_STATUSES, USER_ROLES } from "./roles.js";
+import {
+  ACCOUNT_STATUSES,
+  PRODUCT_STATUSES,
+  REPORT_CATEGORIES,
+  REPORT_STATUSES,
+  USER_ROLES
+} from "./roles.js";
 
 const trimmedString = (minimum, maximum) =>
   z.string().trim().min(minimum).max(maximum);
 
 export const userRoleSchema = z.enum(USER_ROLES);
+export const accountStatusSchema = z.enum(ACCOUNT_STATUSES);
+export const reportCategorySchema = z.enum(REPORT_CATEGORIES);
+export const reportStatusSchema = z.enum(REPORT_STATUSES);
 export const productStatusSchema = z.enum(PRODUCT_STATUSES);
 export const productCategorySchema = z.enum(PRODUCT_CATEGORIES);
 export const productUnitSchema = z.enum(PRODUCT_UNITS);

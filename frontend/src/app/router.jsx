@@ -2,9 +2,11 @@ import { createBrowserRouter } from "react-router-dom";
 import { GuestRoute } from "../components/auth/GuestRoute.jsx";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute.jsx";
 import { RoleRoute } from "../components/auth/RoleRoute.jsx";
+import { AdminRoute } from "../components/auth/AdminRoute.jsx";
 import { RouteFallback } from "../components/common/RouteFallback.jsx";
 import { AppLayout } from "../layouts/AppLayout.jsx";
 import { AuthLayout } from "../layouts/AuthLayout.jsx";
+import { AdminLayout } from "../layouts/AdminLayout.jsx";
 import { SessionAwareLayout } from "../layouts/SessionAwareLayout.jsx";
 import { NotFoundPage } from "../pages/NotFoundPage.jsx";
 import { SplashPage } from "../pages/SplashPage.jsx";
@@ -122,6 +124,23 @@ export const router = createBrowserRouter([
                 lazy: lazyPage(
                   () => import("../pages/MyProductsPage.jsx"),
                   "MyProductsPage"
+                )
+              }
+            ]
+          }
+        ]
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              {
+                path: "/admin/:section?",
+                lazy: lazyPage(
+                  () => import("../pages/admin/AdminPortalPage.jsx"),
+                  "AdminPortalPage"
                 )
               }
             ]

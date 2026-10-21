@@ -19,8 +19,13 @@ export function LoginPage() {
   async function submit(values) {
     setFormError("");
     try {
-      await auth.login(values);
-      navigate(location.state?.from?.pathname ?? "/marketplace", { replace: true });
+      const session = await auth.login(values);
+      navigate(
+        session?.profile?.isAdmin
+          ? "/admin"
+          : location.state?.from?.pathname ?? "/marketplace",
+        { replace: true }
+      );
     } catch (error) {
       setFormError(error.message);
     }

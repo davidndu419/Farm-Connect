@@ -1,6 +1,6 @@
 # Farm Connect
 
-Farm Connect is a mobile-first Nigerian agricultural marketplace. Farmers publish structured listings and buyers contact them through private, realtime product conversations. Chat supports text and image messages; the application deliberately excludes administration, payments, carts, orders, reviews, videos, voice notes, and document attachments.
+Farm Connect is a mobile-first Nigerian agricultural marketplace. Farmers publish structured listings and buyers contact them through private, realtime product conversations. Chat supports text and image messages, and a role-protected admin centre provides marketplace monitoring and moderation.
 
 ## Architecture
 
@@ -151,6 +151,15 @@ Farm Connect is configured for a **unified monorepo deployment on Vercel** under
 - Conversation responses include a normalized counterpart profile, product context, latest message/time, and unread status. The inbox and chat use those fields for avatar-led conversation rows, fixed chat controls, message timestamps, and role-aware participant profile links.
 - Buyer and Farmer conversation-profile cards share the same contact layout. Buyer contact details are available only to authenticated conversation counterparts and omit the Farmer-only listings section.
 - Chat images are limited to JPEG, PNG, or WebP source files up to 5 MB. The API decodes them, strips metadata, converts them to WebP, and stores them in the private `chat-media` bucket. Only conversation participants can obtain the short-lived signed image URLs returned by message APIs.
+- The admin centre shows user, product, conversation, message, report, and restriction totals. Administrators can inspect product content, review conversations for moderation, process user reports, hide unsafe products, freeze accounts into read-only mode, suspend accounts, restore access, and promote or demote other administrators. Every sensitive change requires a reason and is stored in the admin audit log.
+- Administrator access is separate from the Farmer/Buyer marketplace role. Promoting a user never removes their products or changes how they use the marketplace. Admin users are sent to `/admin` after login and can return to the marketplace at any time.
+- To bootstrap the first administrator after applying the migrations, run the following once in the Supabase SQL editor with the owner email changed:
+
+  ```sql
+  insert into public.admin_memberships (user_id)
+  select id from auth.users where lower(email) = lower('owner@example.com')
+  on conflict (user_id) do update set revoked_at = null, revoked_by = null;
+  ```
 - Active and sold-out products remain visible in the public marketplace. Archived products are paused and can be returned directly to active status.
 - My Products contains active, sold-out, and archived listings only. Product deletion is permanent from the UI but remains a soft deletion in PostgreSQL so conversation and relational history are preserved.
 - A sold-out listing still has public details and may receive new buyer conversations. Archived and deleted listings have no public details.

@@ -9,6 +9,7 @@ import { listMessages, sendMessage } from "../api/messagesApi.js";
 import { Avatar } from "../components/common/Avatar.jsx";
 import { ChatComposer } from "../components/messaging/ChatComposer.jsx";
 import { MessageList } from "../components/messaging/MessageList.jsx";
+import { ReportUserButton } from "../components/moderation/ReportUserButton.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useRealtimeChat } from "../hooks/useRealtimeChat.js";
 import { participantProfilePath } from "../utils/participantProfilePath.js";
@@ -108,6 +109,11 @@ export function ChatPage() {
             </p>
           </div>
         </Link>
+        <ReportUserButton
+          conversationId={conversationId}
+          userId={otherUser.id}
+          userName={otherUser.full_name}
+        />
       </header>
 
       <MessageList messages={messages.data.data} userId={user.id} />
